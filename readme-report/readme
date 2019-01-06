@@ -1,0 +1,90 @@
+bot.py
+
+
+Description
+
+There are two threads in this script. 
+
+1) One thread keeps receiving user's messages from telegram. After receiving the photo/URL, a keyboard will be sent to user, in which user can choose to predict the emotion or the gender of the face. After receiving user's choice, chat id, file id/URL and use's choice of prediction will be pushed into Message Queue 'download'. The use of cache in this thread makes user be able to choose different prediction and repeat doing prediction of the same photo in a while.
+
+2) The other thread keeps popping message from Message Queue 'prediction'. The message could be chat id and prediction result or chat id and error. Check if there is any error in the message. If there is, respond the error to the user. If not, send the image with prediction result to the user. 
+
+
+Dependencies
+
+redis, telepot, json, base64, threading, logging
+
+
+
+------------------------------------------------------------------------------------------
+download_image.py
+
+
+Description
+
+The script can work in multiprocessing. The whole procedure of this script includes following steps: 
+
+1) Pop the chat id, file id/URL and choice of prediction from Message Queue 'download' continuously.
+
+2) Download image from telegram server or the URL. If there is any error in this step, push chat id and error into Message Queue 'prediction'. 
+
+3) Check whether the image is in the cache. If it is, that means the image has been predicted before, so get the cached prediction and push it as well as chat id into Message Queue 'prediction'. If not, push chat id, choice of prediction and downloaded image into Message Queue 'image'.
+
+
+Dependencies
+
+redis, json, requests, PIL, imagehash, telepot, base64, io, multiprocessing, sys, logging
+
+
+
+------------------------------------------------------------------------------------------
+predict.py
+
+
+Description 
+
+The script can work in multiprocessing.The whole procedure of this script includes following steps:
+
+1) Keep popping chat id, choice of prediction and downloaded image from Message Queue 'image'. 
+
+2) Once getting an image, call the predict_emotion/predict_gender function according to the user's choice.
+ 
+3) Push chat id and the prediction result into both the Message Queue 'prediction' and the cache.
+
+
+Dependencies
+
+redis, json, base64, predictions, PIL, imagehash, io, multiprocessing, sys. 
+
+The module predictions includes two scripts: emotion.py and gender.py, which will be introduced later.
+
+
+
+------------------------------------------------------------------------------------------
+emotion.py/gender.py
+
+
+Description
+
+This two scripts are from https://github.com/oarriaga/face_classification
+
+They use pre-trained models to detect faces and predict emotions or genders. The input is an image with human faces, the output is the same image plus the emotions/genders of the faces.
+
+
+Dependencies
+
+keras==2.0.5, tensorflow==1.1.0, numpy==1.12.1, opencv-python==3.2.0
+
+
+
+------------------------------------------------------------------------------------------
+Instructions on how to run the programs
+
+
+First, make sure the redis-server is running. Then in the terminal, type the following command to run them. 
+
+python bot.py
+python download_image.py 3
+python predict.py 3
+
+Note: the number 3 in the end means the number of processes, which can be changed according to needs.
