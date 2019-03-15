@@ -15,3 +15,6 @@ python download_image.py 3
 python predict.py 3
 ```
 Note: the number 3 in the end means the number of processes, which can be changed according to needs.
+
+## Diagram of the System
+![image](https://github.com/florapril/emotion-gender-pre-app/blob/master/Diagram%20of%20the%20System%20Architecture.png?raw=true)
